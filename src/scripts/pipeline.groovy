@@ -39,7 +39,11 @@ pipeline {
                             // TODO номер сборки добавить
                             git branch: params.branch, url: params.url
                             withMaven(maven: 'mvn') {
-                                sh 'mvn clean install spring-boot:start -DskipTests'
+                                script {
+                                    def pom = findFiles(glob: '**/pom.xml')[0]
+                                    echo "Found pom file ${pom}"
+                                    sh "mvn clean install spring-boot:start -DskipTests -f ${pom}"
+                                }
                             }
                         }
                     }
