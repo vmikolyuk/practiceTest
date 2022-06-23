@@ -104,31 +104,31 @@ pipeline {
             cleanWs()
 
             // отправка почты
-            wrap([$class: 'BuildUser']) {
-                mail bcc: '',
-                     body: "Build №${env.BUILD_NUMBER} finished with status '${currentBuild.result}'",
-                     cc: '',
-                     from: 'Naumen Practice Bot',
-                     replyTo: '',
-                     subject: "Build №${env.BUILD_NUMBER} - [${currentBuild.result}]",
-                     to: "${BUILD_USER_EMAIL}"
-            }
+            //            wrap([$class: 'BuildUser']) {
+            //                mail bcc: '',
+            //                     body: "Build №${env.BUILD_NUMBER} finished with status '${currentBuild.result}'",
+            //                     cc: '',
+            //                     from: 'Naumen Practice Bot',
+            //                     replyTo: '',
+            //                     subject: "Build №${env.BUILD_NUMBER} - [${currentBuild.result}]",
+            //                     to: "${BUILD_USER_EMAIL}"
+            //            }
 
             // если сборка успешна, то отправим еще и боту
-            script {
-                if (currentBuild.result == 'SUCCESS')
-                {
-                    wrap([$class: 'BuildUser']) {
-                        mail bcc: '',
-                             body: "Build №${env.BUILD_NUMBER} finished with status '${currentBuild.result}'",
-                             cc: '',
-                             from: "${BUILD_USER_EMAIL}",
-                             replyTo: '',
-                             subject: "Build №${env.BUILD_NUMBER} - [${currentBuild.result}] user ${BUILD_USER_EMAIL}",
-                             to: "naumenpractice@gmail.com"
-                    }
-                }
-            }
+            //            script {
+            //                if (currentBuild.result == 'SUCCESS')
+            //                {
+            //                    wrap([$class: 'BuildUser']) {
+            //                        mail bcc: '',
+            //                             body: "Build №${env.BUILD_NUMBER} finished with status '${currentBuild.result}'",
+            //                             cc: '',
+            //                             from: "${BUILD_USER_EMAIL}",
+            //                             replyTo: '',
+            //                             subject: "Build №${env.BUILD_NUMBER} - [${currentBuild.result}] user ${BUILD_USER_EMAIL}",
+            //                             to: "naumenpractice@gmail.com"
+            //                    }
+            //                }
+            //            }
         }
     }
 }
