@@ -52,7 +52,7 @@ pipeline {
                 stage('Testing') {
                     steps {
                         // ожидание старта приложения
-                        timeout(time: 60, unit: 'SECONDS') {
+                        timeout(time: 120, unit: 'SECONDS') {
                             waitUntil(initialRecurrencePeriod: 1000) {
                                 script {
                                     try
