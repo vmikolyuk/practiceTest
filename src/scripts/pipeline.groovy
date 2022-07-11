@@ -103,6 +103,12 @@ pipeline {
             // очистка ресурсов
             cleanWs()
 
+            // очистка БД после запуска приложения
+            // TODO ну такой жесткий костыль
+            script {
+                sh "find ~/ -maxdepth 1 -name '*.mv.db' -print0 | xargs -0 rm"
+            }
+
             // отправка почты
             //            wrap([$class: 'BuildUser']) {
             //                mail bcc: '',
