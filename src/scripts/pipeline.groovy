@@ -100,14 +100,41 @@ pipeline {
 
     post {
         always {
+            // удаление БД после запуска приложения
+            // найти путь к БД приложения в конфигурационном файле и удалить ее по этому пути
+            dir("${env.BUILD_NUMBER}/app") {
+                script {
+                    def appPropFile = sh(script: "find -name 'application.properties' | head -1", returnStdout: true)
+                    echo "Application.properties on path: ${appPropFile}"
+                    if (appPropFile)
+                    {
+                        // из него вытащить настройки подключения
+                        def dbProp = sh(script: "grep 'spring.datasource.url' ${appPropFile}", returnStdout: true)
+                        echo "Database property: ${dbProp}"
+                        if (dbProp)
+                        {
+                            // получить URL подключения к БД
+                            def dbUrl = dbProp.split('jdbc:h2:file:')[1].trim()
+                            echo "Database url: ${dbUrl}"
+                            if (dbUrl)
+                            {
+                                // удалить БД
+                                def dbPath = "${dbUrl}.mv.db"
+                                echo "Database path: ${dbPath}"
+                                sh "rm ${dbPath}"
+                                echo "Database was remove success"
+                            }
+                        }
+                    }
+                    else
+                    {
+                        echo "Application.properties not found"
+                    }
+                }
+            }
+
             // очистка ресурсов
             cleanWs()
-
-            // очистка БД после запуска приложения
-            // TODO ну такой жесткий костыль
-            script {
-                sh "find ~/ -maxdepth 1 -name '*.mv.db' -print0 | xargs -0 rm"
-            }
 
             // отправка почты
             //            wrap([$class: 'BuildUser']) {
