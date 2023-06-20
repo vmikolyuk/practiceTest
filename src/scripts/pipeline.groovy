@@ -76,7 +76,7 @@ pipeline {
                             withMaven(maven: 'mvn') {
                                 script {
                                     def dTest = (1..(Integer.valueOf(params.task)))
-                                        .collect {"ru.naumen.practiceTest.task${it}.**"}
+                                        .collect {"ru.naumen.practiceTest.task${it}.TestPracticeTask*"}
                                         .join(',')
                                     sh "mvn clean test -Dtest=${dTest}"
                                 }

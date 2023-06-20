@@ -21,6 +21,7 @@ public class RestTestBase
     protected static final String CLIENT_ADDRESS_KEY = "address";
     protected static final String CLIENT_PHONE_NUMBER_KEY = "phoneNumber";
     protected static final String CLIENT_EXTERNAL_ID_KEY = "externalId";
+    protected static final String CLIENT_CLIENT_KEY = "client";
 
     protected static final String CATEGORIES_PATH = "categories";
     protected static final String CATEGORY_NAME_KEY = "name";
