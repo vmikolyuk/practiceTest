@@ -4,7 +4,9 @@ import static io.restassured.RestAssured.given;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 
 /**
@@ -21,6 +23,7 @@ public class RestTestBase
     protected static final String CLIENT_ADDRESS_KEY = "address";
     protected static final String CLIENT_PHONE_NUMBER_KEY = "phoneNumber";
     protected static final String CLIENT_EXTERNAL_ID_KEY = "externalId";
+    protected static final String CLIENT_CLIENT_KEY = "client";
 
     protected static final String CATEGORIES_PATH = "categories";
     protected static final String CATEGORY_NAME_KEY = "name";
@@ -43,6 +46,14 @@ public class RestTestBase
     protected static final String ORDER_PRODUCT_PRODUCT_KEY = "product";
     protected static final String ORDER_PRODUCT_CLIENT_ORDER_KEY = "clientOrder";
     protected static final String ORDER_PRODUCT_COUNT_PRODUCT_KEY = "countProduct";
+
+    protected static final String baseURI;
+
+    static {
+        var port = Optional.ofNullable(System.getProperty("app.port")).orElse("8080");
+        baseURI = "http://localhost:" + Integer.parseInt(port);
+        RestAssured.baseURI = baseURI;
+    }
 
     /**
      * Выполнить DELETE REST-запрос по передаваемому пути для удаления в системе объекта
@@ -134,7 +145,7 @@ public class RestTestBase
      * @return обработанный ответ
      */
     @SuppressWarnings("unchecked")
-    protected static Map<String, Object> flattenResponseLinks(Map<String, Object> response)
+    private static Map<String, Object> flattenResponseLinks(Map<String, Object> response)
     {
         Map<String, Object> linksMap = (Map<String, Object>)response.get("_links");
         linksMap.forEach((key, value) -> response.put(key, ((Map<String, String>)value).get("href")));
