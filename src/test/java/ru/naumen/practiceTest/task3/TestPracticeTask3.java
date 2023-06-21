@@ -1,8 +1,9 @@
 package ru.naumen.practiceTest.task3;
 
 import io.restassured.http.ContentType;
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import static io.restassured.RestAssured.given;
  * @author vmikolyuk
  * @since 20.04.2022
  */
-public class TestPracticeTask3 extends Task3TestBase {
+class TestPracticeTask3 extends Task3TestBase {
     private static final String PARAM_LIMIT = "limit";
 
     /**
@@ -26,7 +27,7 @@ public class TestPracticeTask3 extends Task3TestBase {
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetClientProducts() {
+    void testGetClientProducts() {
         String requestPath = String.format("/rest/clients/%s/products", getIdFromPath((String) client1.get(SELF_KEY)));
 
         // Выполняем запрос
@@ -42,12 +43,12 @@ public class TestPracticeTask3 extends Task3TestBase {
         //@formatter:on
 
         // Проверяем, что в ответе содержится 2 товара
-        Assert.assertEquals(2, response.size());
+        Assertions.assertEquals(2, response.size());
 
         // Проверяем, что у товаров ответа корректная категория
         response.forEach(product ->
         {
-            Assert.assertEquals(
+            Assertions.assertEquals(
                     getIdFromPath((String) childCategory.get(SELF_KEY)),
                     ((Map<String, Object>) product.get(PRODUCT_CATEGORY_KEY)).get(ID_KEY)
             );
@@ -67,7 +68,7 @@ public class TestPracticeTask3 extends Task3TestBase {
             product.remove(SELF_KEY);
             product.remove(PRODUCT_KEY);
             product.remove(PRODUCT_CATEGORY_KEY);
-            Assert.assertTrue(response.contains(product));
+            Assertions.assertTrue(response.contains(product));
         });
     }
 
@@ -77,7 +78,7 @@ public class TestPracticeTask3 extends Task3TestBase {
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetClientOrders() {
+    void testGetClientOrders() {
         String client1FullName = (String) client1.get(CLIENT_FULL_NAME_KEY);
         String requestPath = String.format("/rest/clients/%s/orders", getIdFromPath((String) client1.get(SELF_KEY)));
 
@@ -94,14 +95,14 @@ public class TestPracticeTask3 extends Task3TestBase {
         //@formatter:on
 
         // Проверяем, что в ответе содержится 2 заказа
-        Assert.assertEquals(2, response.size());
+        Assertions.assertEquals(2, response.size());
 
         // Проверяем, что у заказов ответа корректный клиент
         response.forEach(clientOrder ->
                 {
                     Map<String, Object> client = (Map<String, Object>) clientOrder.get(CLIENT_ORDER_CLIENT_KEY);
-                    Assert.assertNotNull(client);
-                    Assert.assertEquals(client1FullName, client.get(CLIENT_FULL_NAME_KEY));
+                    Assertions.assertNotNull(client);
+                    Assertions.assertEquals(client1FullName, client.get(CLIENT_FULL_NAME_KEY));
                     clientOrder.remove(CLIENT_ORDER_CLIENT_KEY);
                 }
         );
@@ -119,7 +120,7 @@ public class TestPracticeTask3 extends Task3TestBase {
             clientOrder.remove(SELF_KEY);
             clientOrder.remove(CLIENT_ORDER_KEY);
             clientOrder.remove(CLIENT_ORDER_CLIENT_KEY);
-            Assert.assertTrue(response.contains(clientOrder));
+            Assertions.assertTrue(response.contains(clientOrder));
         });
     }
 
@@ -129,7 +130,7 @@ public class TestPracticeTask3 extends Task3TestBase {
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetPopularProducts() {
+    void testGetPopularProducts() {
         String requestPath = "/rest/products/popular";
 
         // Выполняем запрос, limit=3
@@ -146,13 +147,13 @@ public class TestPracticeTask3 extends Task3TestBase {
         //@formatter:on
 
         // Проверяем, что в ответе содержится 3 товара
-        Assert.assertEquals(3, response.size());
+        Assertions.assertEquals(3, response.size());
 
         // Проверяем, что ответ содержит правильные товары в правильном порядке (с наибольшим количеством в заказах в
         // порядке убывания количества)
-        Assert.assertEquals(response.get(0).get(PRODUCT_NAME_KEY), product3.get(PRODUCT_NAME_KEY));
-        Assert.assertEquals(response.get(1).get(PRODUCT_NAME_KEY), product2.get(PRODUCT_NAME_KEY));
-        Assert.assertEquals(response.get(2).get(PRODUCT_NAME_KEY), product1.get(PRODUCT_NAME_KEY));
+        Assertions.assertEquals(response.get(0).get(PRODUCT_NAME_KEY), product3.get(PRODUCT_NAME_KEY));
+        Assertions.assertEquals(response.get(1).get(PRODUCT_NAME_KEY), product2.get(PRODUCT_NAME_KEY));
+        Assertions.assertEquals(response.get(2).get(PRODUCT_NAME_KEY), product1.get(PRODUCT_NAME_KEY));
 
         // Выполняем запрос, limit=1
         //@formatter:off
@@ -168,10 +169,10 @@ public class TestPracticeTask3 extends Task3TestBase {
         //@formatter:on
 
         // Проверяем, что в ответе содержится 1 товар
-        Assert.assertEquals(1, response.size());
+        Assertions.assertEquals(1, response.size());
 
         // Проверяем, что ответ содержит самый популярный товар
-        Assert.assertEquals(response.get(0).get(PRODUCT_NAME_KEY), product3.get(PRODUCT_NAME_KEY));
+        Assertions.assertEquals(response.get(0).get(PRODUCT_NAME_KEY), product3.get(PRODUCT_NAME_KEY));
     }
 
     /**
@@ -180,7 +181,7 @@ public class TestPracticeTask3 extends Task3TestBase {
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testSearchProductsByCategoryId() {
+    void testSearchProductsByCategoryId() {
         String requestPath = "/rest/products/search?categoryId=" + getIdFromPath((String) childCategory.get(SELF_KEY));
 
         // Выполняем запрос
@@ -196,12 +197,12 @@ public class TestPracticeTask3 extends Task3TestBase {
         //@formatter:on
 
         // Проверяем, что в ответе содержится 3 товара
-        Assert.assertEquals(3, response.size());
+        Assertions.assertEquals(3, response.size());
 
         // Проверяем, что у товаров ответа корректная категория
         response.forEach(product ->
         {
-            Assert.assertEquals(
+            Assertions.assertEquals(
                     getIdFromPath((String) childCategory.get(SELF_KEY)),
                     ((Map<String, Object>) product.get(PRODUCT_CATEGORY_KEY)).get(ID_KEY)
             );
@@ -222,7 +223,7 @@ public class TestPracticeTask3 extends Task3TestBase {
             product.remove(SELF_KEY);
             product.remove(PRODUCT_KEY);
             product.remove(PRODUCT_CATEGORY_KEY);
-            Assert.assertTrue(response.contains(product));
+            Assertions.assertTrue(response.contains(product));
         });
     }
 }

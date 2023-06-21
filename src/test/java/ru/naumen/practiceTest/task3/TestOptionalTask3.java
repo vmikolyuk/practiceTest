@@ -1,8 +1,9 @@
 package ru.naumen.practiceTest.task3;
 
 import io.restassured.http.ContentType;
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
@@ -10,10 +11,11 @@ import static io.restassured.RestAssured.given;
 
 /**
  * Тестирование практического задания 3
+ *
  * @author vmikolyuk
  * @since 20.04.2022
  */
-public class TestOptionalTask3 extends Task3TestBase
+class TestOptionalTask3 extends Task3TestBase
 {
     /**
      * Протестировать получение товаров по подстроке названия
@@ -21,7 +23,7 @@ public class TestOptionalTask3 extends Task3TestBase
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testSearchProductsByName()
+    void testSearchProductsByName()
     {
         //todo параметризовать
         String requestPath = "/rest/products/search";
@@ -40,12 +42,12 @@ public class TestOptionalTask3 extends Task3TestBase
         //@formatter:on
 
         // Проверяем, что в ответе содержится 1 товар
-        Assert.assertEquals(1, response1.size());
+        Assertions.assertEquals(1, response1.size());
 
         // Проверяем, что у товаров ответа корректная категория
         response1.forEach(product ->
         {
-            Assert.assertEquals(
+            Assertions.assertEquals(
                     getIdFromPath((String)childCategory.get(SELF_KEY)),
                     ((Map<String, Object>)product.get(PRODUCT_CATEGORY_KEY)).get(ID_KEY)
             );
@@ -64,7 +66,7 @@ public class TestOptionalTask3 extends Task3TestBase
             product.remove(SELF_KEY);
             product.remove(PRODUCT_KEY);
             product.remove(PRODUCT_CATEGORY_KEY);
-            Assert.assertTrue(response1.contains(product));
+            Assertions.assertTrue(response1.contains(product));
         });
 
         // Выполняем запрос (поиск по sample)
@@ -81,12 +83,12 @@ public class TestOptionalTask3 extends Task3TestBase
         //@formatter:on
 
         // Проверяем, что в ответе содержится 3 товара
-        Assert.assertEquals(2, response2.size());
+        Assertions.assertEquals(2, response2.size());
 
         // Проверяем, что у товаров ответа корректная категория
         response2.forEach(product ->
         {
-            Assert.assertEquals(
+            Assertions.assertEquals(
                     getIdFromPath((String)childCategory.get(SELF_KEY)),
                     ((Map<String, Object>)product.get(PRODUCT_CATEGORY_KEY)).get(ID_KEY)
             );
@@ -106,7 +108,7 @@ public class TestOptionalTask3 extends Task3TestBase
             product.remove(SELF_KEY);
             product.remove(PRODUCT_KEY);
             product.remove(PRODUCT_CATEGORY_KEY);
-            Assert.assertTrue(response2.contains(product));
+            Assertions.assertTrue(response2.contains(product));
         });
     }
 
@@ -116,7 +118,7 @@ public class TestOptionalTask3 extends Task3TestBase
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testSearchClientsByName()
+    void testSearchClientsByName()
     {
         String requestPath = "/rest/clients/search";
 
@@ -134,7 +136,7 @@ public class TestOptionalTask3 extends Task3TestBase
         //@formatter:on
 
         // Проверяем, что в ответе содержится 2 клиента
-        Assert.assertEquals(2, response.size());
+        Assertions.assertEquals(2, response.size());
 
         // Создаём временные копии клиентов для сравнения с клиентами ответа
         List<Map<String, Object>> clientsToCompare = new ArrayList<>();
@@ -148,7 +150,7 @@ public class TestOptionalTask3 extends Task3TestBase
             client.put(ID_KEY, getIdFromPath((String)client.get(SELF_KEY)));
             client.remove(SELF_KEY);
             client.remove(CLIENT_CLIENT_KEY);
-            Assert.assertTrue(response.contains(client));
+            Assertions.assertTrue(response.contains(client));
         });
     }
 }

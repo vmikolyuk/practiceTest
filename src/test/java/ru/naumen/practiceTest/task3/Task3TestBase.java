@@ -1,7 +1,7 @@
 package ru.naumen.practiceTest.task3;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import ru.naumen.practiceTest.RestTestBase;
 
 import java.util.Deque;
@@ -38,7 +38,7 @@ public class Task3TestBase extends RestTestBase {
     /**
      * Создать тестовые сущности
      */
-    @BeforeClass
+    @BeforeAll
     public static void createTestEntities() {
         // Создаём клиентов
         client1 = createClient("client1 FullName", "client 1 address", "PhoneNumber1", 1L);
@@ -71,7 +71,7 @@ public class Task3TestBase extends RestTestBase {
     /**
      * Удалить тестовые сущности
      */
-    @AfterClass
+    @AfterAll
     public static void deleteTestEntities() {
         // Удаляем сущности
         while (!storedEntities.isEmpty()) {
