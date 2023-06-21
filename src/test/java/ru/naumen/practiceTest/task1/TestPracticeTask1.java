@@ -9,13 +9,14 @@ import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
+import ru.naumen.practiceTest.RestTestBase;
 
 /**
  * Тестирование практического задания 1
  * @author vmikolyuk
  * @since 25.03.2022
  */
-public class TestPracticeTask1
+public class TestPracticeTask1 extends RestTestBase
 {
     private static final Pattern pattern = Pattern.compile(".+Hello.+world.+");
 
@@ -26,8 +27,7 @@ public class TestPracticeTask1
     @Test
     public void testHomePage() throws IOException
     {
-        String homePageAddress = "http://localhost:8080/";
-        URL url = new URL(homePageAddress);
+        URL url = new URL(baseURI);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream())))
         {
             String content = reader.lines().collect(Collectors.joining());

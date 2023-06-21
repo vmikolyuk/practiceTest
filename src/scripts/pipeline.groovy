@@ -1,28 +1,47 @@
+def appPort
+def appPomFile
+
+static def getFreePort() {
+    // не используем withCloseable, т.к. jenkins создает CPSClosure,
+    // который нельзя передать в withClosable
+    // а NonCPS повесить на метод нельзя из-за безопасности
+    def s = null
+    try {
+        s = new ServerSocket(0)
+        return s.getLocalPort()
+    } finally {
+        s?.close()
+    }
+}
+
 pipeline {
     // любая свободная нода
     agent any
 
     // параметры сборки
     options {
+        buildDiscarder(logRotator(numToKeepStr: '15')) // хранить последние 15 сборок
+        disableResume()
         parallelsAlwaysFailFast() // завершить сборку если хоть один этап упадет
         timeout(time: 5, unit: 'MINUTES') // таймаут сборки
-        disableConcurrentBuilds()
+    }
+
+    environment {
+        JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
     }
 
     stages {
         // этап проверки
-        stage('Checkout') {
+        stage('Check') {
             steps {
                 script {
                     // проверка заполненности URL репозитория
-                    if (params.url == '')
-                    {
+                    if (params.url == '') {
                         currentBuild.result = 'ABORTED'
                         error('Repository url not set')
                     }
                     // проверка заполненности ветки
-                    if (params.branch == '')
-                    {
+                    if (params.branch == '') {
                         currentBuild.result = 'ABORTED'
                         error('Branch not set')
                     }
@@ -36,14 +55,28 @@ pipeline {
                 stage('Running app') {
                     steps {
                         dir("${env.BUILD_NUMBER}/app") {
-                            // TODO номер сборки добавить
                             git branch: params.branch, url: params.url
                             withMaven(maven: 'mvn') {
                                 script {
-                                    def pom = findFiles(glob: '**/pom.xml')[0]
-                                    echo "Found pom file ${pom}"
-                                    sh "mvn clean install spring-boot:start -DskipTests -f ${pom}"
+                                    appPomFile = findFiles(glob: '**/pom.xml')[0]
+                                    echo "Found pom file $appPomFile"
+                                    sh "mvn -B -f $appPomFile clean package -DskipTests"
                                 }
+                            }
+                            script {
+                                def jarFile = findFiles(glob: '**/target/*.jar')[0]
+                                echo "Found jar file $jarFile"
+
+                                // Находим свободный порт
+                                appPort = getFreePort()
+                                echo "Found available port $appPort"
+
+                                def springArgs = "-Dspring.datasource.url=jdbc:h2:file:./db -Dserver.port=$appPort"
+                                sh """
+                                    $JAVA_HOME/bin/java -Xmx128m $springArgs -jar $jarFile &
+                                    echo \$! > app.pid
+                                    wait \$(cat app.pid) || exit 0
+                                """
                             }
                         }
                     }
@@ -52,16 +85,14 @@ pipeline {
                 stage('Testing') {
                     steps {
                         // ожидание старта приложения
-                        timeout(time: 120, unit: 'SECONDS') {
+                        timeout(time: 180, unit: 'SECONDS') {
                             waitUntil(initialRecurrencePeriod: 1000) {
                                 script {
-                                    try
-                                    {
-                                        def request = httpRequest 'http://localhost:8080/'
+                                    try {
+                                        def request = httpRequest "http://localhost:$appPort"
                                         return (request.status == 200)
                                     }
-                                    catch (def e)
-                                    {
+                                    catch (def ignored) {
                                         return false
                                     }
                                 }
@@ -76,20 +107,19 @@ pipeline {
                             withMaven(maven: 'mvn') {
                                 script {
                                     def dTest = (1..(Integer.valueOf(params.task)))
-                                        .collect {"ru.naumen.practiceTest.task${it}.TestPracticeTask*"}
-                                        .join(',')
-                                    sh "mvn clean test -Dtest=${dTest}"
+                                            .collect { "ru.naumen.practiceTest.task${it}.TestPracticeTask*" }
+                                            .join(',')
+                                    sh "mvn test -Dtest=$dTest -Dapp.port=$appPort"
                                 }
                             }
                         }
+                    }
 
-                        // остановка приложения
-                        dir("${env.BUILD_NUMBER}/app") {
-                            withMaven(maven: 'mvn') {
-                                script {
-                                    def pom = findFiles(glob: '**/pom.xml')[0]
-                                    sh "mvn spring-boot:stop -f ${pom}"
-                                }
+                    post {
+                        always {
+                            // остановка приложения
+                            dir("${env.BUILD_NUMBER}/app") {
+                                sh 'while ps -p $(cat app.pid); do kill $(cat app.pid); sleep 1; done'
                             }
                         }
                     }
@@ -100,39 +130,6 @@ pipeline {
 
     post {
         always {
-            // удаление БД после запуска приложения
-            // найти путь к БД приложения в конфигурационном файле и удалить ее по этому пути
-            dir("${env.BUILD_NUMBER}/app") {
-                script {
-                    def appPropFile = sh(script: "find -name 'application.properties' | head -1", returnStdout: true)
-                    echo "Application.properties on path: ${appPropFile}"
-                    if (appPropFile)
-                    {
-                        // из него вытащить настройки подключения
-                        def dbProp = sh(script: "grep 'spring.datasource.url' ${appPropFile}", returnStdout: true)
-                        echo "Database property: ${dbProp}"
-                        if (dbProp)
-                        {
-                            // получить URL подключения к БД
-                            def dbUrl = dbProp.split('jdbc:h2:file:')[1].trim()
-                            echo "Database url: ${dbUrl}"
-                            if (dbUrl)
-                            {
-                                // удалить БД
-                                def dbPath = "${dbUrl}.mv.db"
-                                echo "Database path: ${dbPath}"
-                                sh "rm ${dbPath}"
-                                echo "Database was remove success"
-                            }
-                        }
-                    }
-                    else
-                    {
-                        echo "Application.properties not found"
-                    }
-                }
-            }
-
             // очистка ресурсов
             cleanWs()
 
