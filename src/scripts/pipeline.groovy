@@ -70,6 +70,9 @@ pipeline {
                                 }
                             }
                             script {
+                                def app = findFiles(glob: '**/application.properties')[0]
+                                sh "cat $app"
+
                                 def jarFile = findFiles(glob: '**/target/*.jar')[0]
                                 echo "Found jar file $jarFile"
 
