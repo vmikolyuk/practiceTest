@@ -1,15 +1,19 @@
 def appPort
 def appPomFile
 
-static def getFreePort() {
+static def getFreePort()
+{
     // не используем withCloseable, т.к. jenkins создает CPSClosure,
     // который нельзя передать в withClosable
     // а NonCPS повесить на метод нельзя из-за безопасности
     def s = null
-    try {
+    try
+    {
         s = new ServerSocket(0)
         return s.getLocalPort()
-    } finally {
+    }
+    finally
+    {
         s?.close()
     }
 }
@@ -36,12 +40,14 @@ pipeline {
             steps {
                 script {
                     // проверка заполненности URL репозитория
-                    if (params.url == '') {
+                    if (params.url == '')
+                    {
                         currentBuild.result = 'ABORTED'
                         error('Repository url not set')
                     }
                     // проверка заполненности ветки
-                    if (params.branch == '') {
+                    if (params.branch == '')
+                    {
                         currentBuild.result = 'ABORTED'
                         error('Branch not set')
                     }
@@ -71,7 +77,8 @@ pipeline {
                                 appPort = getFreePort()
                                 echo "Found available port $appPort"
 
-                                def springArgs = "-Dspring.datasource.url=jdbc:h2:file:./db -Dserver.port=$appPort"
+                                def springArgs = "-Dspring.datasource.url=jdbc:h2:file:./db -Dspring.datasource." +
+                                    "username=admin -Dspring.datasource.password=admin -Dserver.port=$appPort"
                                 sh """
                                     $JAVA_HOME/bin/java -Xmx128m $springArgs -jar $jarFile &
                                     echo \$! > app.pid
@@ -88,11 +95,13 @@ pipeline {
                         timeout(time: 180, unit: 'SECONDS') {
                             waitUntil(initialRecurrencePeriod: 1000) {
                                 script {
-                                    try {
+                                    try
+                                    {
                                         def request = httpRequest "http://localhost:$appPort"
                                         return (request.status == 200)
                                     }
-                                    catch (def ignored) {
+                                    catch (def ignored)
+                                    {
                                         return false
                                     }
                                 }
@@ -107,8 +116,8 @@ pipeline {
                             withMaven(maven: 'mvn') {
                                 script {
                                     def dTest = (1..(Integer.valueOf(params.task)))
-                                            .collect { "ru.naumen.practiceTest.task${it}.TestPracticeTask*" }
-                                            .join(',')
+                                        .collect {"ru.naumen.practiceTest.task${it}.TestPracticeTask*"}
+                                        .join(',')
                                     sh "mvn test -Dtest=$dTest -Dapp.port=$appPort"
                                 }
                             }
