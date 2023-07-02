@@ -1,229 +1,292 @@
 package ru.naumen.practiceTest.task3;
 
-import io.restassured.http.ContentType;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import ru.naumen.practiceTest.RestTestBase;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import static io.restassured.RestAssured.given;
 
 /**
  * Тестирование практического задания 3
  *
- * @author vmikolyuk
- * @since 20.04.2022
+ * @author aspirkin
+ * @since 13.05.2022
  */
-class TestPracticeTask3 extends Task3TestBase {
-    private static final String PARAM_LIMIT = "limit";
-
+class TestPracticeTask3 extends RestTestBase {
     /**
-     * Протестировать получение всех товаров, купленных когда-либо клиентом, методом
-     * GET /rest/clients/{id}/products
+     * Протестировать CRUD операции REST-репозитория категории
      */
-    @SuppressWarnings("unchecked")
     @Test
-    void testGetClientProducts() {
-        String requestPath = String.format("/rest/clients/%s/products", getIdFromPath((String) client1.get(SELF_KEY)));
+    void testCategoryRepositoryCRUD() {
+        // Создаём категорию 1
+        Map<String, Object> category1 = new HashMap<>();
+        category1.put(CATEGORY_NAME_KEY, "testCategory1");
+        category1.put(CATEGORY_PARENT_KEY, null);
+        Map<String, Object> postResponse1 = postEntity(category1, CATEGORIES_PATH);
 
-        // Выполняем запрос
-        //@formatter:off
-        List<Map<String, Object>> response = given()
-                .contentType(ContentType.JSON)
-            .expect()
-                .statusCode(200)
-                .when()
-            .get(requestPath)
-                .then()
-                .extract().body().as(List.class);
-        //@formatter:on
+        // Проверяем поля и сохраняем ссылку на категорию 1
+        Assertions.assertEquals(category1.get(CATEGORY_NAME_KEY), postResponse1.get(CATEGORY_NAME_KEY));
+        Assertions.assertNotNull(postResponse1.get(CATEGORY_PARENT_KEY));
+        String category1Link = (String) postResponse1.get(SELF_KEY);
+        Assertions.assertNotNull(category1Link);
 
-        // Проверяем, что в ответе содержится 2 товара
-        Assertions.assertEquals(2, response.size());
+        // Обновляем категорию 1
+        category1.put(CATEGORY_NAME_KEY, "testCategory1Updated");
+        Map<String, Object> putResponse = putEntity(category1, category1Link);
 
-        // Проверяем, что у товаров ответа корректная категория
-        response.forEach(product ->
-        {
-            Assertions.assertEquals(
-                    getIdFromPath((String) childCategory.get(SELF_KEY)),
-                    ((Map<String, Object>) product.get(PRODUCT_CATEGORY_KEY)).get(ID_KEY)
-            );
-            product.remove(PRODUCT_CATEGORY_KEY);
-        });
+        // Проверяем поля
+        Assertions.assertEquals(category1.get(CATEGORY_NAME_KEY), putResponse.get(CATEGORY_NAME_KEY));
 
-        // Создаём временные копии товаров для сравнения с товарами ответа
-        List<Map<String, Object>> productsToCompare = new ArrayList<>();
-        productsToCompare.add(new HashMap<>(product1));
-        productsToCompare.add(new HashMap<>(product2));
+        // Создаём категорию 2
+        Map<String, Object> category2 = new HashMap<>();
+        category2.put(CATEGORY_NAME_KEY, "testCategory2");
+        category2.put(CATEGORY_PARENT_KEY, null);
+        Map<String, Object> postResponse2 = postEntity(category2, CATEGORIES_PATH);
 
-        // Подготавливаем копии товаров (удаляем специфичные для RepositoryRestResource ссылочные атрибуты) и проверяем
-        // их наличие в ответе
-        productsToCompare.forEach(product ->
-        {
-            product.put(ID_KEY, getIdFromPath((String) product.get(SELF_KEY)));
-            product.remove(SELF_KEY);
-            product.remove(PRODUCT_KEY);
-            product.remove(PRODUCT_CATEGORY_KEY);
-            Assertions.assertTrue(response.contains(product));
-        });
+        // Проверяем поля и сохраняем ссылку на категорию 2
+        Assertions.assertNotNull(postResponse2.get(CATEGORY_PARENT_KEY));
+        String category2Link = (String) postResponse2.get(SELF_KEY);
+        Assertions.assertNotNull(category2Link);
+
+        // Проверяем, что есть 2 категории
+        Assertions.assertEquals(2, getEntities(CATEGORIES_PATH).size());
+
+        // Удаляем категории
+        deleteEntity(category1Link);
+        deleteEntity(category2Link);
+
+        // Проверяем, что категорий нет
+        Assertions.assertEquals(0, getEntities(CATEGORIES_PATH).size());
     }
 
     /**
-     * Протестировать получение всех заказов клиента методом
-     * GET /rest/clients/{id}/orders
+     * Протестировать CRUD операции REST-репозитория товара
      */
-    @SuppressWarnings("unchecked")
     @Test
-    void testGetClientOrders() {
-        String client1FullName = (String) client1.get(CLIENT_FULL_NAME_KEY);
-        String requestPath = String.format("/rest/clients/%s/orders", getIdFromPath((String) client1.get(SELF_KEY)));
+    void testProductRepositoryCRUD() {
+        // Создаём товар 1
+        Map<String, Object> product1 = new HashMap<>();
+        product1.put(PRODUCT_NAME_KEY, "testProduct1");
+        product1.put(PRODUCT_CATEGORY_KEY, null);
+        product1.put(PRODUCT_DESCRIPTION_KEY, "test product 1 description");
+        product1.put(PRODUCT_PRICE_KEY, 3.50);
+        Map<String, Object> postResponse1 = postEntity(product1, PRODUCTS_PATH);
 
-        // Выполняем запрос
-        //@formatter:off
-        List<Map<String, Object>> response = given()
-                .contentType(ContentType.JSON)
-            .expect()
-                .statusCode(200)
-            .when()
-                .get(requestPath)
-            .then()
-                .extract().body().as(List.class);
-        //@formatter:on
+        // Проверяем поля и сохраняем ссылку на товар 1
+        Assertions.assertEquals(product1.get(PRODUCT_NAME_KEY), postResponse1.get(PRODUCT_NAME_KEY));
+        Assertions.assertEquals(product1.get(PRODUCT_DESCRIPTION_KEY), postResponse1.get(PRODUCT_DESCRIPTION_KEY));
+        Assertions.assertEquals(product1.get(PRODUCT_PRICE_KEY), postResponse1.get(PRODUCT_PRICE_KEY));
+        Assertions.assertNotNull(postResponse1.get(PRODUCT_CATEGORY_KEY));
+        String product1Link = (String) postResponse1.get(SELF_KEY);
+        Assertions.assertNotNull(product1Link);
 
-        // Проверяем, что в ответе содержится 2 заказа
-        Assertions.assertEquals(2, response.size());
+        // Обновляем товар 1
+        product1.put(PRODUCT_NAME_KEY, "testProduct1Updated");
+        product1.put(PRODUCT_DESCRIPTION_KEY, "test product 1 description updated");
+        product1.put(PRODUCT_PRICE_KEY, 13.50);
+        Map<String, Object> putResponse = putEntity(product1, product1Link);
 
-        // Проверяем, что у заказов ответа корректный клиент
-        response.forEach(clientOrder ->
-                {
-                    Map<String, Object> client = (Map<String, Object>) clientOrder.get(CLIENT_ORDER_CLIENT_KEY);
-                    Assertions.assertNotNull(client);
-                    Assertions.assertEquals(client1FullName, client.get(CLIENT_FULL_NAME_KEY));
-                    clientOrder.remove(CLIENT_ORDER_CLIENT_KEY);
-                }
-        );
+        // Проверяем поля
+        Assertions.assertEquals(product1.get(PRODUCT_NAME_KEY), putResponse.get(PRODUCT_NAME_KEY));
+        Assertions.assertEquals(product1.get(PRODUCT_DESCRIPTION_KEY), putResponse.get(PRODUCT_DESCRIPTION_KEY));
+        Assertions.assertEquals(product1.get(PRODUCT_PRICE_KEY), putResponse.get(PRODUCT_PRICE_KEY));
 
-        // Создаём временные копии заказов для сравнения с заказами ответа
-        List<Map<String, Object>> clientOrdersToCompare = new ArrayList<>();
-        clientOrdersToCompare.add(new HashMap<>(clientOrder1));
-        clientOrdersToCompare.add(new HashMap<>(clientOrder4));
+        // Создаём товар 2
+        Map<String, Object> product2 = new HashMap<>();
+        product2.put(PRODUCT_NAME_KEY, "testProduct2");
+        product2.put(PRODUCT_CATEGORY_KEY, null);
+        product2.put(PRODUCT_DESCRIPTION_KEY, "test product 2 description");
+        product2.put(PRODUCT_PRICE_KEY, 4.50);
+        Map<String, Object> postResponse2 = postEntity(product2, PRODUCTS_PATH);
 
-        // Подготавливаем копии заказов (удаляем специфичные для RepositoryRestResource ссылочные атрибуты) и проверяем
-        // их наличие в ответе
-        clientOrdersToCompare.forEach(clientOrder ->
-        {
-            clientOrder.put(ID_KEY, getIdFromPath((String) clientOrder.get(SELF_KEY)));
-            clientOrder.remove(SELF_KEY);
-            clientOrder.remove(CLIENT_ORDER_KEY);
-            clientOrder.remove(CLIENT_ORDER_CLIENT_KEY);
-            Assertions.assertTrue(response.contains(clientOrder));
-        });
+        // Проверяем поля и сохраняем ссылку на товар 2
+        Assertions.assertEquals(product2.get(PRODUCT_NAME_KEY), postResponse2.get(PRODUCT_NAME_KEY));
+        Assertions.assertEquals(product2.get(PRODUCT_DESCRIPTION_KEY), postResponse2.get(PRODUCT_DESCRIPTION_KEY));
+        Assertions.assertEquals(product2.get(PRODUCT_PRICE_KEY), postResponse2.get(PRODUCT_PRICE_KEY));
+        Assertions.assertNotNull(postResponse2.get(PRODUCT_CATEGORY_KEY));
+        String product2Link = (String) postResponse2.get(SELF_KEY);
+        Assertions.assertNotNull(product2Link);
+
+        // Проверяем, что есть 2 товара
+        Assertions.assertEquals(2, getEntities(PRODUCTS_PATH).size());
+
+        // Удаляем товары
+        deleteEntity(product1Link);
+        deleteEntity(product2Link);
+
+        // Проверяем, что товаров нет
+        Assertions.assertEquals(0, getEntities(PRODUCTS_PATH).size());
     }
 
     /**
-     * Протестировать получение {limit} самых популярных товаров среди клиентов методом
-     * GET /rest/products/popular?limit=
+     * Протестировать CRUD операции REST-репозитория клиента
      */
-    @SuppressWarnings("unchecked")
     @Test
-    void testGetPopularProducts() {
-        String requestPath = "/rest/products/popular";
+    void testClientRepositoryCRUD() {
+        // Создаём клиента 1
+        Map<String, Object> client1 = new HashMap<>();
+        client1.put(CLIENT_FULL_NAME_KEY, "client1 FullName");
+        client1.put(CLIENT_ADDRESS_KEY, "client 1 address");
+        client1.put(CLIENT_PHONE_NUMBER_KEY, "PhoneNumber1");
+        client1.put(CLIENT_EXTERNAL_ID_KEY, 1L);
+        Map<String, Object> postResponse1 = postEntity(client1, CLIENTS_PATH);
 
-        // Выполняем запрос, limit=3
-        //@formatter:off
-        List<Map<String, Object>> response = given()
-                .contentType(ContentType.JSON)
-                .queryParam(PARAM_LIMIT, 3)
-            .expect()
-                .statusCode(200)
-            .when()
-                .get(requestPath)
-            .then()
-                .extract().body().as(List.class);
-        //@formatter:on
+        // Проверяем поля и сохраняем ссылку на клиента 1
+        Assertions.assertEquals(client1.get(CLIENT_FULL_NAME_KEY), postResponse1.get(CLIENT_FULL_NAME_KEY));
+        Assertions.assertEquals(client1.get(CLIENT_ADDRESS_KEY), postResponse1.get(CLIENT_ADDRESS_KEY));
+        Assertions.assertEquals(client1.get(CLIENT_PHONE_NUMBER_KEY), postResponse1.get(CLIENT_PHONE_NUMBER_KEY));
+        Assertions.assertEquals(client1.get(CLIENT_EXTERNAL_ID_KEY),
+                ((Number) postResponse1.get(CLIENT_EXTERNAL_ID_KEY)).longValue());
+        String client1Link = (String) postResponse1.get(SELF_KEY);
+        Assertions.assertNotNull(client1Link);
 
-        // Проверяем, что в ответе содержится 3 товара
-        Assertions.assertEquals(3, response.size());
+        // Обновляем клиента 1
+        client1.put(CLIENT_FULL_NAME_KEY, "client1 FullName updated");
+        client1.put(CLIENT_ADDRESS_KEY, "client 1 address updated");
+        client1.put(CLIENT_PHONE_NUMBER_KEY, "PhoneNumber1u");
+        client1.put(CLIENT_EXTERNAL_ID_KEY, 11L);
+        Map<String, Object> putResponse = putEntity(client1, client1Link);
 
-        // Проверяем, что ответ содержит правильные товары в правильном порядке (с наибольшим количеством в заказах в
-        // порядке убывания количества)
-        Assertions.assertEquals(response.get(0).get(PRODUCT_NAME_KEY), product3.get(PRODUCT_NAME_KEY));
-        Assertions.assertEquals(response.get(1).get(PRODUCT_NAME_KEY), product2.get(PRODUCT_NAME_KEY));
-        Assertions.assertEquals(response.get(2).get(PRODUCT_NAME_KEY), product1.get(PRODUCT_NAME_KEY));
+        // Проверяем поля
+        Assertions.assertEquals(client1.get(CLIENT_FULL_NAME_KEY), putResponse.get(CLIENT_FULL_NAME_KEY));
+        Assertions.assertEquals(client1.get(CLIENT_ADDRESS_KEY), putResponse.get(CLIENT_ADDRESS_KEY));
+        Assertions.assertEquals(client1.get(CLIENT_PHONE_NUMBER_KEY), putResponse.get(CLIENT_PHONE_NUMBER_KEY));
+        Assertions.assertEquals(client1.get(CLIENT_EXTERNAL_ID_KEY),
+                ((Number) putResponse.get(CLIENT_EXTERNAL_ID_KEY)).longValue());
 
-        // Выполняем запрос, limit=1
-        //@formatter:off
-        response = given()
-                .contentType(ContentType.JSON)
-                .queryParam(PARAM_LIMIT, 1)
-            .expect()
-                .statusCode(200)
-            .when()
-                .get(requestPath)
-            .then()
-                .extract().body().as(List.class);
-        //@formatter:on
+        // Создаём клиента 2
+        Map<String, Object> client2 = new HashMap<>();
+        client2.put(CLIENT_FULL_NAME_KEY, "client2 FullName");
+        client2.put(CLIENT_ADDRESS_KEY, "client 2 address");
+        client2.put(CLIENT_PHONE_NUMBER_KEY, "PhoneNumber2");
+        client2.put(CLIENT_EXTERNAL_ID_KEY, 2L);
+        Map<String, Object> postResponse2 = postEntity(client2, CLIENTS_PATH);
 
-        // Проверяем, что в ответе содержится 1 товар
-        Assertions.assertEquals(1, response.size());
+        // Проверяем поля и сохраняем ссылку на клиента 2
+        Assertions.assertEquals(client2.get(CLIENT_FULL_NAME_KEY), postResponse2.get(CLIENT_FULL_NAME_KEY));
+        Assertions.assertEquals(client2.get(CLIENT_ADDRESS_KEY), postResponse2.get(CLIENT_ADDRESS_KEY));
+        Assertions.assertEquals(client2.get(CLIENT_PHONE_NUMBER_KEY), postResponse2.get(CLIENT_PHONE_NUMBER_KEY));
+        Assertions.assertEquals(client2.get(CLIENT_EXTERNAL_ID_KEY),
+                ((Number) postResponse2.get(CLIENT_EXTERNAL_ID_KEY)).longValue());
+        String client2Link = (String) postResponse2.get(SELF_KEY);
+        Assertions.assertNotNull(client2Link);
 
-        // Проверяем, что ответ содержит самый популярный товар
-        Assertions.assertEquals(response.get(0).get(PRODUCT_NAME_KEY), product3.get(PRODUCT_NAME_KEY));
+        // Проверяем, что есть 2 клиента
+        Assertions.assertEquals(2, getEntities(CLIENTS_PATH).size());
+
+        // Удаляем клиентов
+        deleteEntity(client1Link);
+        deleteEntity(client2Link);
+
+        // Проверяем, что клиентов нет
+        Assertions.assertEquals(0, getEntities(CLIENTS_PATH).size());
     }
 
     /**
-     * Протестировать получение товаров по идентификатору категории методом
-     * GET /rest/products/search?categoryId=
+     * Протестировать CRUD операции REST-репозитория заказа клиента
      */
-    @SuppressWarnings("unchecked")
     @Test
-    void testSearchProductsByCategoryId() {
-        String requestPath = "/rest/products/search?categoryId=" + getIdFromPath((String) childCategory.get(SELF_KEY));
+    void testClientOrderRepositoryCRUD() {
+        // Создаём заказ клиента 1
+        Map<String, Object> clientOrder1 = new HashMap<>();
+        clientOrder1.put(CLIENT_ORDER_CLIENT_KEY, null);
+        clientOrder1.put(CLIENT_ORDER_STATUS_KEY, 1);
+        clientOrder1.put(CLIENT_ORDER_TOTAL_KEY, 1.1);
+        Map<String, Object> postResponse1 = postEntity(clientOrder1, CLIENT_ORDERS_PATH);
 
-        // Выполняем запрос
-        //@formatter:off
-        List<Map<String, Object>> response = given()
-                .contentType(ContentType.JSON)
-            .expect()
-                .statusCode(200)
-            .when()
-                .get(requestPath)
-            .then()
-                .extract().body().as(List.class);
-        //@formatter:on
+        // Проверяем поля и сохраняем ссылку на заказ клиента 1
+        Assertions.assertEquals(clientOrder1.get(CLIENT_ORDER_STATUS_KEY), postResponse1.get(CLIENT_ORDER_STATUS_KEY));
+        Assertions.assertEquals(clientOrder1.get(CLIENT_ORDER_TOTAL_KEY), postResponse1.get(CLIENT_ORDER_TOTAL_KEY));
+        Assertions.assertNotNull(postResponse1.get(CLIENT_ORDER_CLIENT_KEY));
+        String clientOrder1Link = (String) postResponse1.get(SELF_KEY);
+        Assertions.assertNotNull(clientOrder1Link);
 
-        // Проверяем, что в ответе содержится 3 товара
-        Assertions.assertEquals(3, response.size());
+        // Обновляем заказ клиента 1
+        clientOrder1.put(CLIENT_ORDER_STATUS_KEY, 2);
+        clientOrder1.put(CLIENT_ORDER_TOTAL_KEY, 1.2);
+        Map<String, Object> putResponse = putEntity(clientOrder1, clientOrder1Link);
 
-        // Проверяем, что у товаров ответа корректная категория
-        response.forEach(product ->
-        {
-            Assertions.assertEquals(
-                    getIdFromPath((String) childCategory.get(SELF_KEY)),
-                    ((Map<String, Object>) product.get(PRODUCT_CATEGORY_KEY)).get(ID_KEY)
-            );
-            product.remove(PRODUCT_CATEGORY_KEY);
-        });
+        // Проверяем поля
+        Assertions.assertEquals(clientOrder1.get(CLIENT_ORDER_STATUS_KEY), putResponse.get(CLIENT_ORDER_STATUS_KEY));
+        Assertions.assertEquals(clientOrder1.get(CLIENT_ORDER_TOTAL_KEY), putResponse.get(CLIENT_ORDER_TOTAL_KEY));
 
-        // Создаём временные копии товаров для сравнения с товарами ответа
-        List<Map<String, Object>> productsToCompare = new ArrayList<>();
-        productsToCompare.add(new HashMap<>(product1));
-        productsToCompare.add(new HashMap<>(product2));
-        productsToCompare.add(new HashMap<>(product3));
+        // Создаём заказ клиента 2
+        Map<String, Object> clientOrder2 = new HashMap<>();
+        clientOrder2.put(CLIENT_ORDER_CLIENT_KEY, null);
+        clientOrder2.put(CLIENT_ORDER_STATUS_KEY, 3);
+        clientOrder2.put(CLIENT_ORDER_TOTAL_KEY, 2.1);
+        Map<String, Object> postResponse2 = postEntity(clientOrder2, CLIENT_ORDERS_PATH);
 
-        // Подготавливаем копии товаров (удаляем специфичные для RepositoryRestResource ссылочные атрибуты) и проверяем
-        // их наличие в ответе
-        productsToCompare.forEach(product ->
-        {
-            product.put(ID_KEY, getIdFromPath((String) product.get(SELF_KEY)));
-            product.remove(SELF_KEY);
-            product.remove(PRODUCT_KEY);
-            product.remove(PRODUCT_CATEGORY_KEY);
-            Assertions.assertTrue(response.contains(product));
-        });
+        // Проверяем поля и сохраняем ссылку на заказ клиента 2
+        Assertions.assertEquals(clientOrder2.get(CLIENT_ORDER_STATUS_KEY), postResponse2.get(CLIENT_ORDER_STATUS_KEY));
+        Assertions.assertEquals(clientOrder2.get(CLIENT_ORDER_TOTAL_KEY), postResponse2.get(CLIENT_ORDER_TOTAL_KEY));
+        Assertions.assertNotNull(postResponse2.get(CLIENT_ORDER_CLIENT_KEY));
+        String clientOrder2Link = (String) postResponse2.get(SELF_KEY);
+        Assertions.assertNotNull(clientOrder2Link);
+
+        // Проверяем, что есть 2 заказа клиентов
+        Assertions.assertEquals(2, getEntities(CLIENT_ORDERS_PATH).size());
+
+        // Удаляем заказы клиентов
+        deleteEntity(clientOrder1Link);
+        deleteEntity(clientOrder2Link);
+
+        // Проверяем, что заказов клиентов нет
+        Assertions.assertEquals(0, getEntities(CLIENT_ORDERS_PATH).size());
+    }
+
+    /**
+     * Протестировать CRUD операции REST-репозитория заказа-товара
+     */
+    @Test
+    void testOrderProductRepositoryCRUD() {
+        // Создаём заказ-товар 1
+        Map<String, Object> orderProduct1 = new HashMap<>();
+        orderProduct1.put(ORDER_PRODUCT_PRODUCT_KEY, null);
+        orderProduct1.put(ORDER_PRODUCT_CLIENT_ORDER_KEY, null);
+        orderProduct1.put(ORDER_PRODUCT_COUNT_PRODUCT_KEY, 10);
+        Map<String, Object> postResponse1 = postEntity(orderProduct1, ORDER_PRODUCTS_PATH);
+
+        // Проверяем поля и сохраняем ссылку на заказ-товар 1
+        Assertions.assertEquals(orderProduct1.get(ORDER_PRODUCT_COUNT_PRODUCT_KEY),
+                postResponse1.get(ORDER_PRODUCT_COUNT_PRODUCT_KEY));
+        Assertions.assertNotNull(postResponse1.get(ORDER_PRODUCT_PRODUCT_KEY));
+        Assertions.assertNotNull(postResponse1.get(ORDER_PRODUCT_CLIENT_ORDER_KEY));
+        String orderProduct1Link = (String) postResponse1.get(SELF_KEY);
+        Assertions.assertNotNull(orderProduct1Link);
+
+        // Обновляем заказ-товар 1
+        orderProduct1.put(ORDER_PRODUCT_COUNT_PRODUCT_KEY, 11);
+        Map<String, Object> putResponse = putEntity(orderProduct1, orderProduct1Link);
+
+        // Проверяем поля
+        Assertions.assertEquals(orderProduct1.get(ORDER_PRODUCT_COUNT_PRODUCT_KEY),
+                putResponse.get(ORDER_PRODUCT_COUNT_PRODUCT_KEY));
+
+        // Создаём заказ-товар 2
+        Map<String, Object> orderProduct2 = new HashMap<>();
+        orderProduct2.put(ORDER_PRODUCT_PRODUCT_KEY, null);
+        orderProduct2.put(ORDER_PRODUCT_CLIENT_ORDER_KEY, null);
+        orderProduct2.put(ORDER_PRODUCT_COUNT_PRODUCT_KEY, 20);
+        Map<String, Object> postResponse2 = postEntity(orderProduct2, ORDER_PRODUCTS_PATH);
+
+        // Проверяем поля и сохраняем ссылку на заказ-товар 2
+        Assertions.assertEquals(orderProduct2.get(ORDER_PRODUCT_COUNT_PRODUCT_KEY),
+                postResponse2.get(ORDER_PRODUCT_COUNT_PRODUCT_KEY));
+        Assertions.assertNotNull(postResponse2.get(ORDER_PRODUCT_PRODUCT_KEY));
+        Assertions.assertNotNull(postResponse2.get(ORDER_PRODUCT_CLIENT_ORDER_KEY));
+        String orderProduct2Link = (String) postResponse2.get(SELF_KEY);
+        Assertions.assertNotNull(orderProduct2Link);
+
+        // Проверяем, что есть 2 заказа-товара
+        Assertions.assertEquals(2, getEntities(ORDER_PRODUCTS_PATH).size());
+
+        // Удаляем заказы-товары
+        deleteEntity(orderProduct1Link);
+        deleteEntity(orderProduct2Link);
+
+        // Проверяем, что заказов-товаров нет
+        Assertions.assertEquals(0, getEntities(ORDER_PRODUCTS_PATH).size());
     }
 }

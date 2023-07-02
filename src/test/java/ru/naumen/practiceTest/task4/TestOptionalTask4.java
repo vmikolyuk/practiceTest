@@ -1,4 +1,4 @@
-package ru.naumen.practiceTest.task3;
+package ru.naumen.practiceTest.task4;
 
 import io.restassured.http.ContentType;
 
@@ -10,12 +10,12 @@ import java.util.*;
 import static io.restassured.RestAssured.given;
 
 /**
- * Тестирование практического задания 3
+ * Тестирование практического задания 4
  *
  * @author vmikolyuk
  * @since 20.04.2022
  */
-class TestOptionalTask3 extends Task3TestBase
+class TestOptionalTask4 extends Task4TestBase
 {
     /**
      * Протестировать получение товаров по подстроке названия
