@@ -1,4 +1,4 @@
-package ru.naumen.practiceTest.task3;
+package ru.naumen.practiceTest.task4;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -10,12 +10,12 @@ import java.util.LinkedList;
 import java.util.Map;
 
 /**
- * Наполнение БД для практического задания 3
+ * Наполнение БД для практического задания 4
  *
  * @author vmikolyuk
  * @since 20.04.2022
  */
-public class Task3TestBase extends RestTestBase {
+public class Task4TestBase extends RestTestBase {
     private static final Deque<Map<String, Object>> storedEntities = new LinkedList<>();
 
     protected static Map<String, Object> client1 = new HashMap<>();
