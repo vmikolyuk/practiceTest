@@ -64,9 +64,9 @@ public class RestTestBase
         //@formatter:off
         given()
                 .contentType(ContentType.JSON)
-                .expect()
+            .expect()
                 .statusCode(204)
-                .when()
+            .when()
                 .delete(path);
         //@formatter:on
     }
@@ -85,11 +85,11 @@ public class RestTestBase
                 given()
                         .contentType(ContentType.JSON)
                         .body(entity)
-                        .expect()
+                .expect()
                         .statusCode(200)
-                        .when()
+                .when()
                         .put(path)
-                        .then()
+                .then()
                         .extract().body().as(Map.class)
         );
         //@formatter:on
@@ -109,11 +109,11 @@ public class RestTestBase
                 given()
                         .contentType(ContentType.JSON)
                         .body(entity)
-                        .expect()
+                .expect()
                         .statusCode(201)
-                        .when()
+                .when()
                         .post("/" + path)
-                        .then()
+                .then()
                         .extract().body().as(Map.class)
         );
         //@formatter:on
@@ -129,11 +129,11 @@ public class RestTestBase
         //@formatter:off
         return given()
                 .contentType(ContentType.JSON)
-                .expect()
+            .expect()
                 .statusCode(200)
-                .when()
+            .when()
                 .get("/" + path)
-                .then()
+            .then()
                 .extract().body().path("_embedded." + path);
         //@formatter:on
     }

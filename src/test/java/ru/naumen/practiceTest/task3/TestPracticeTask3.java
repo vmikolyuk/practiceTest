@@ -65,10 +65,18 @@ class TestPracticeTask3 extends RestTestBase {
      */
     @Test
     void testProductRepositoryCRUD() {
+        // Создаём категорию для товаров
+        Map<String, Object> category = new HashMap<>();
+        category.put(CATEGORY_NAME_KEY, "productCategory");
+        category.put(CATEGORY_PARENT_KEY, null);
+        category = postEntity(category, CATEGORIES_PATH);
+        String categoryLink = (String) category.get("self");
+
+
         // Создаём товар 1
         Map<String, Object> product1 = new HashMap<>();
         product1.put(PRODUCT_NAME_KEY, "testProduct1");
-        product1.put(PRODUCT_CATEGORY_KEY, null);
+        product1.put(PRODUCT_CATEGORY_KEY, categoryLink);
         product1.put(PRODUCT_DESCRIPTION_KEY, "test product 1 description");
         product1.put(PRODUCT_PRICE_KEY, 3.50);
         Map<String, Object> postResponse1 = postEntity(product1, PRODUCTS_PATH);
@@ -95,7 +103,7 @@ class TestPracticeTask3 extends RestTestBase {
         // Создаём товар 2
         Map<String, Object> product2 = new HashMap<>();
         product2.put(PRODUCT_NAME_KEY, "testProduct2");
-        product2.put(PRODUCT_CATEGORY_KEY, null);
+        product2.put(PRODUCT_CATEGORY_KEY, categoryLink);
         product2.put(PRODUCT_DESCRIPTION_KEY, "test product 2 description");
         product2.put(PRODUCT_PRICE_KEY, 4.50);
         Map<String, Object> postResponse2 = postEntity(product2, PRODUCTS_PATH);
@@ -117,6 +125,8 @@ class TestPracticeTask3 extends RestTestBase {
 
         // Проверяем, что товаров нет
         Assertions.assertEquals(0, getEntities(PRODUCTS_PATH).size());
+
+        deleteEntity(categoryLink);
     }
 
     /**
@@ -188,9 +198,18 @@ class TestPracticeTask3 extends RestTestBase {
      */
     @Test
     void testClientOrderRepositoryCRUD() {
+        // Создаём клиента для заказов
+        Map<String, Object> client = new HashMap<>();
+        client.put(CLIENT_FULL_NAME_KEY, "client1 FullName");
+        client.put(CLIENT_ADDRESS_KEY, "client 1 address");
+        client.put(CLIENT_PHONE_NUMBER_KEY, "PhoneNumber1");
+        client.put(CLIENT_EXTERNAL_ID_KEY, 91L);
+        client = postEntity(client, CLIENTS_PATH);
+        String clientLink = (String) client.get("self");
+
         // Создаём заказ клиента 1
         Map<String, Object> clientOrder1 = new HashMap<>();
-        clientOrder1.put(CLIENT_ORDER_CLIENT_KEY, null);
+        clientOrder1.put(CLIENT_ORDER_CLIENT_KEY, clientLink);
         clientOrder1.put(CLIENT_ORDER_STATUS_KEY, 1);
         clientOrder1.put(CLIENT_ORDER_TOTAL_KEY, 1.1);
         Map<String, Object> postResponse1 = postEntity(clientOrder1, CLIENT_ORDERS_PATH);
@@ -213,7 +232,7 @@ class TestPracticeTask3 extends RestTestBase {
 
         // Создаём заказ клиента 2
         Map<String, Object> clientOrder2 = new HashMap<>();
-        clientOrder2.put(CLIENT_ORDER_CLIENT_KEY, null);
+        clientOrder2.put(CLIENT_ORDER_CLIENT_KEY, clientLink);
         clientOrder2.put(CLIENT_ORDER_STATUS_KEY, 3);
         clientOrder2.put(CLIENT_ORDER_TOTAL_KEY, 2.1);
         Map<String, Object> postResponse2 = postEntity(clientOrder2, CLIENT_ORDERS_PATH);
@@ -234,6 +253,8 @@ class TestPracticeTask3 extends RestTestBase {
 
         // Проверяем, что заказов клиентов нет
         Assertions.assertEquals(0, getEntities(CLIENT_ORDERS_PATH).size());
+
+        deleteEntity(clientLink);
     }
 
     /**
@@ -241,10 +262,36 @@ class TestPracticeTask3 extends RestTestBase {
      */
     @Test
     void testOrderProductRepositoryCRUD() {
+        // Создаем категорию, товар, клиента и заказ клиента
+        Map<String, Object> category = new HashMap<>();
+        category.put(CATEGORY_NAME_KEY, "testCategory1");
+        category.put(CATEGORY_PARENT_KEY, null);
+        String categoryLink = (String) postEntity(category, CATEGORIES_PATH).get("self");
+
+        Map<String, Object> product = new HashMap<>();
+        product.put(PRODUCT_NAME_KEY, "testProduct1");
+        product.put(PRODUCT_CATEGORY_KEY, categoryLink);
+        product.put(PRODUCT_DESCRIPTION_KEY, "test product 1 description");
+        product.put(PRODUCT_PRICE_KEY, 3.50);
+        String productLink = (String) postEntity(product, PRODUCTS_PATH).get("self");
+
+        Map<String, Object> client = new HashMap<>();
+        client.put(CLIENT_FULL_NAME_KEY, "client1 FullName");
+        client.put(CLIENT_ADDRESS_KEY, "client 1 address");
+        client.put(CLIENT_PHONE_NUMBER_KEY, "PhoneNumber1");
+        client.put(CLIENT_EXTERNAL_ID_KEY, 91L);
+        String clientLink = (String) postEntity(client, CLIENTS_PATH).get("self");
+
+        Map<String, Object> clientOrder = new HashMap<>();
+        clientOrder.put(CLIENT_ORDER_CLIENT_KEY, clientLink);
+        clientOrder.put(CLIENT_ORDER_STATUS_KEY, 1);
+        clientOrder.put(CLIENT_ORDER_TOTAL_KEY, 1.1);
+        String clientOrderLink = (String) postEntity(clientOrder, CLIENT_ORDERS_PATH).get("self");
+
         // Создаём заказ-товар 1
         Map<String, Object> orderProduct1 = new HashMap<>();
-        orderProduct1.put(ORDER_PRODUCT_PRODUCT_KEY, null);
-        orderProduct1.put(ORDER_PRODUCT_CLIENT_ORDER_KEY, null);
+        orderProduct1.put(ORDER_PRODUCT_PRODUCT_KEY, productLink);
+        orderProduct1.put(ORDER_PRODUCT_CLIENT_ORDER_KEY, clientOrderLink);
         orderProduct1.put(ORDER_PRODUCT_COUNT_PRODUCT_KEY, 10);
         Map<String, Object> postResponse1 = postEntity(orderProduct1, ORDER_PRODUCTS_PATH);
 
@@ -266,8 +313,8 @@ class TestPracticeTask3 extends RestTestBase {
 
         // Создаём заказ-товар 2
         Map<String, Object> orderProduct2 = new HashMap<>();
-        orderProduct2.put(ORDER_PRODUCT_PRODUCT_KEY, null);
-        orderProduct2.put(ORDER_PRODUCT_CLIENT_ORDER_KEY, null);
+        orderProduct2.put(ORDER_PRODUCT_PRODUCT_KEY, productLink);
+        orderProduct2.put(ORDER_PRODUCT_CLIENT_ORDER_KEY, clientOrderLink);
         orderProduct2.put(ORDER_PRODUCT_COUNT_PRODUCT_KEY, 20);
         Map<String, Object> postResponse2 = postEntity(orderProduct2, ORDER_PRODUCTS_PATH);
 
@@ -288,5 +335,10 @@ class TestPracticeTask3 extends RestTestBase {
 
         // Проверяем, что заказов-товаров нет
         Assertions.assertEquals(0, getEntities(ORDER_PRODUCTS_PATH).size());
+
+        deleteEntity(clientOrderLink);
+        deleteEntity(productLink);
+        deleteEntity(clientLink);
+        deleteEntity(categoryLink);
     }
 }
