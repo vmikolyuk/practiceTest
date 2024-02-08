@@ -5,6 +5,7 @@ properties([
                 string(name: 'url', defaultValue: 'https://github.com/vmikolyuk/practice', description: 'Адрес репозитория', trim: true),
                 string(name: 'branch', defaultValue: 'main', description: 'Имя ветки', trim: true),
                 choice(name: 'task', choices: '2\n3\n4', description: 'Номер задания'),
+                booleanParam(name: 'optional4', defaultValue: false, description: 'Дополнительное задание 4'),
         ])
 ])
 
@@ -57,9 +58,12 @@ def testTaskApp() {
 
             dir('test') {
                 withMaven(maven: 'mvn') {
-                    def dTest = (2..(Integer.valueOf(params.task)))
+                    def allTests = (2..(Integer.valueOf(params.task)))
                             .collect { "ru.naumen.practiceTest.task${it}.TestPracticeTask*" }
-                            .join(',')
+                    if (params.optional4) {
+                        allTests.push("ru.naumen.practiceTest.task4.TestOptionalTask4")
+                    }
+                    def dTest = allTests.join(',')
                     sh "mvn test -Dtest=$dTest -Dapp.port=$appPort"
                 }
             }
