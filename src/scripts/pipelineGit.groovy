@@ -51,7 +51,7 @@ timeout(time: 1, unit: 'MINUTES') {
                 }
             }
             try {
-                withEnv(['JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64']) {
+                withEnv(['JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64']) {
                     testTaskGit()
                 }
             } finally {
