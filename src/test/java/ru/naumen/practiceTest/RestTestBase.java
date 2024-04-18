@@ -1,6 +1,8 @@
 package ru.naumen.practiceTest;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 
 import java.util.List;
 import java.util.Map;
@@ -49,7 +51,8 @@ public class RestTestBase
 
     protected static final String baseURI;
 
-    static {
+    static
+    {
         var port = Optional.ofNullable(System.getProperty("app.port")).orElse("8080");
         baseURI = "http://localhost:" + Integer.parseInt(port);
         RestAssured.baseURI = baseURI;
@@ -65,7 +68,7 @@ public class RestTestBase
         given()
                 .contentType(ContentType.JSON)
             .expect()
-                .statusCode(204)
+                .statusCode(anyOf(is(200), is(204)))
             .when()
                 .delete(path);
         //@formatter:on

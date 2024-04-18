@@ -38,7 +38,7 @@ def testTaskApp() {
 
         def springArgs = "-Dspring.datasource.url=jdbc:h2:file:./db -Dspring.datasource.username=sa -Dserver.port=$appPort"
         sh """
-            $JAVA_HOME/bin/java -Xmx128m $springArgs -jar \"$jarFile\" &
+            $JAVA_HOME/bin/java -Xmx128m $springArgs -jar \"$jarFile\" --debug >> appLog.txt 2>&1 &
             echo \$! > app.pid
         """
 
@@ -98,10 +98,11 @@ timeout(time: 5, unit: 'MINUTES') {
                 }
             }
             try {
-                withEnv(['JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64']) {
+                withEnv(['JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64']) {
                     testTaskApp()
                 }
             } finally {
+                archiveArtifacts artifacts: "appLog.txt", fingerprint: true
                 // очистка ресурсов
                 cleanWs()
 
