@@ -36,7 +36,7 @@ def testTaskGit() {
 }
 
 // таймаут сборки
-timeout(time: 1, unit: 'MINUTES') {
+timeout(time: 2, unit: 'MINUTES') {
     node {
         dir("${env.BUILD_NUMBER}") {
             stage('Prepare') {
