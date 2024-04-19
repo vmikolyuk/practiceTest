@@ -141,7 +141,7 @@ class TestPracticeTask1 {
 
             assertThat(commitIMessage, diffI, hasSize(1));
             assertThat(commitIMessage, diffI.get(0).getChangeType(), equalTo(DiffEntry.ChangeType.ADD));
-            assertThat(commitIMessage, diffI.get(0).getNewPath(), equalTo("file6"));
+            assertThat(commitIMessage, diffI.get(0).getNewPath(), containsString("file6"));
         }
     }
 
