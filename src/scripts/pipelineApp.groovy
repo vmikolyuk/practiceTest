@@ -2,7 +2,7 @@ properties([
         buildDiscarder(logRotator(numToKeepStr: '15')), // хранить последние 15 сборок
         disableResume(),
         parameters([
-                string(name: 'url', defaultValue: 'https://github.com/vmikolyuk/practice', description: 'Адрес репозитория', trim: true),
+                string(name: 'url', defaultValue: 'https://github.com/<your_name>/<your_repo>', description: 'Адрес репозитория', trim: true),
                 string(name: 'branch', defaultValue: 'main', description: 'Имя ветки', trim: true),
                 choice(name: 'task', choices: '2\n3\n4', description: 'Номер задания'),
                 booleanParam(name: 'optional4', defaultValue: false, description: 'Дополнительное задание 4'),
