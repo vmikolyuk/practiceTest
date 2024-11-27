@@ -38,13 +38,13 @@ public class RestTestBase
     protected static final String PRODUCT_DESCRIPTION_KEY = "description";
     protected static final String PRODUCT_PRICE_KEY = "price";
 
-    protected static final String CLIENT_ORDERS_PATH = "clientOrders";
+    protected static final String CLIENT_ORDERS_PATH = "client-orders";
     protected static final String CLIENT_ORDER_KEY = "clientOrder";
     protected static final String CLIENT_ORDER_CLIENT_KEY = "client";
     protected static final String CLIENT_ORDER_STATUS_KEY = "status";
     protected static final String CLIENT_ORDER_TOTAL_KEY = "total";
 
-    protected static final String ORDER_PRODUCTS_PATH = "orderProducts";
+    protected static final String ORDER_PRODUCTS_PATH = "order-products";
     protected static final String ORDER_PRODUCT_PRODUCT_KEY = "product";
     protected static final String ORDER_PRODUCT_CLIENT_ORDER_KEY = "clientOrder";
     protected static final String ORDER_PRODUCT_COUNT_PRODUCT_KEY = "countProduct";
